@@ -1,8 +1,8 @@
-name: bhaskara
+name: algebra
 version: 0.1.0
 
 authors:
-  - your-name-here <gauravshah.89@gmail.com>
+  - gshah <gauravshah.89@gmail.com>
 
 crystal: 1.1.1
 
