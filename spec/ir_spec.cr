@@ -139,35 +139,4 @@ describe IR do
     describe_string_representation_of_tokens({plus: '+', minus: '-', into: '*', by: '/', power: '^', lbrack: '(', rbrack: ')', null: '\0'})
 
   end
-
-  describe ".get_tokens" do
-    it "gets tokens from source string" do
-
-      extracted_tokens = IR.get_tokens "(71/z)*(2x+3y^2-1)"
-      # puts extracted_tokens.map &.to_s
-
-      expected_tokens = [
-        Token.lbrack,
-        Token.new("71", TokenType::CONSTANT),
-        Token.by,
-        Token.new("z", TokenType::VARIABLE),
-        Token.rbrack,
-        Token.into,
-        Token.lbrack,
-        Token.new("2", TokenType::CONSTANT),
-        Token.new("x", TokenType::VARIABLE),
-        Token.plus,
-        Token.new("3", TokenType::CONSTANT),
-        Token.new("y", TokenType::VARIABLE),
-        Token.power,
-        Token.new("2", TokenType::CONSTANT),
-        Token.minus,
-        Token.new("1", TokenType::CONSTANT),
-        Token.rbrack,
-        Token.null
-      ]
-
-      extracted_tokens.should eq expected_tokens
-    end
-  end
 end

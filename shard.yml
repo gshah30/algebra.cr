@@ -4,6 +4,13 @@ version: 0.1.0
 authors:
   - gshah <gauravshah.89@gmail.com>
 
+dependencies:
+  arithmatic:
+    path: /home/gshah/Projects/arithmatic.cr
+  multiset:
+    github: tcrouch/multiset.cr
+
+
 crystal: 1.1.1
 
 license: MIT

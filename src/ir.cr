@@ -1,4 +1,8 @@
+require "arithmatic"
+
 module IR
+
+  alias Base = (Const | Var | Expr)
 
   class InvalidChararacterTokenException < Exception
     def initialize(value : Char | String)
@@ -35,7 +39,16 @@ module IR
     NULL = 0
   end
 
-  class Token
+  struct Token
+
+    def initialize(value : String, type : TokenType)
+      raise InvalidTokenTypeException.new type unless [TokenType::VARIABLE, TokenType::CONSTANT].includes? type
+
+      @value = value
+      @type = type
+    end
+
+    getter value, type
 
     macro define_singleton_tokens(hash_node)
       # defines a class instance hash var from the hash_node HashLiteral ASTNode
@@ -93,18 +106,17 @@ module IR
       end
     end
 
-    def initialize(value : String, type : TokenType)
-      raise InvalidTokenTypeException.new type unless [TokenType::VARIABLE, TokenType::CONSTANT].includes? type
-
-      @value = value
-      @type = type
-    end
-
-    getter value, type
-
     define_singleton_tokens({plus: '+', minus: '-', into: '*', by: '/', power: '^', lbrack: '(', rbrack: ')', null: '\0'})
 
     define_token_type_checkers(constant, variable, null, plus, minus, power, into, by, lbrack, rbrack)
+
+    def const?
+      constant?
+    end
+
+    def var?
+      variable?
+    end
 
     def self.get(single_character : Char)
       case single_character
@@ -138,42 +150,72 @@ module IR
     end
   end
 
-  def self.get_tokens(source : String)
-    tokens = [] of Token | Nil
-    alphabets = 'a'..'z'
-    digits = '0'..'9'
-    len = source.size
+  struct Constant
 
-    i = 0
-    while i < len
-      tokens << case source[i]
-      when ' ', '\t', '\r'
-        nil
-      when '+', '-', '*', '/', '^', '(', ')'
-        Token.get source[i]
-      when alphabets
-        Token.new source[i].to_s, TokenType::VARIABLE
-      when digits
-        constant = ""
-        while digits.covers? source[i+1]
-          constant += source[i]
-          i += 1
-        end
-        constant += source[i]
-        Token.new constant, TokenType::CONSTANT
-      else
-        raise UnknownChararacterException.new source[i], i
-      end
-      i += 1
-    end
-
-    tokens.compact + [Token.null]
-  end
-
-  class Constant
-    def initialize(value : UInt32)
+    def initialize(value : Int32)
       @value = value
     end
+
+    def to_s(io : IO)
+      io << @value.to_s
+    end
+
+    def self.[](value)
+      Constant.new value
+    end
   end
+  alias Const = Constant
+
+  struct Variable
+
+    def initialize(name : String)
+      @name = name
+    end
+
+    def to_s(io : IO)
+      io << @name
+    end
+
+    def self.[](name)
+      Variable.new name
+    end
+  end
+  alias Var = Variable
+
+  struct Term
+    @power_product : PowerProduct(Base)
+
+    def initialize
+      @power_product = PowerProduct(Base).new({} of Base => Rational)
+    end
+
+    def initialize(pp : PowerProduct(Base))
+      @power_product = pp
+    end
+
+    def <<(base : Base, exponent : Rational) : Term
+      @power_product.<< **{ base: base, exponent: exponent }
+      self
+    end
+
+    def <<(pp : PowerProduct(Base)) : Term
+      pp.powers.each do |p|
+        @power_product.<< **{ base: p[0], exponent: p[1] }
+      end
+      self
+    end
+
+    def to_s(io : IO)
+      @power_product.to_s io
+    end
+  end
+
+  struct Expression
+    def initialize()
+
+    end
+  end
+  alias Expr = Expression
+
 
 end

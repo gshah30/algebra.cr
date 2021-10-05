@@ -1,1 +1,2 @@
 require "./ir"
+require "./parser"
