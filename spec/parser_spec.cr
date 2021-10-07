@@ -60,10 +60,10 @@ describe Parser do
           i.should eq tokens.size-1
 
           term_ir.should eq Term.new(Multiset.new([
-            Power.new(Const[2], Rational[2]),
-            Power.new(Const[3], Rational[2]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[2], Rational[2]),
+            Power(Base).new(Const[3], Rational[2]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ]), negative: true)
         end
 
@@ -81,10 +81,10 @@ describe Parser do
           i.should eq tokens.size-1
 
           term_ir.should eq Term.new(Multiset.new [
-            Power.new(Const[2], Rational[2]),
-            Power.new(Const[3], Rational[2]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[2], Rational[2]),
+            Power(Base).new(Const[3], Rational[2]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ])
         end
 
@@ -103,10 +103,10 @@ describe Parser do
           i.should eq tokens.size-1
 
           term_ir.should eq Term.new(Multiset.new [
-            Power.new(Const[2], Rational[2]),
-            Power.new(Const[3], Rational[2]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[2], Rational[2]),
+            Power(Base).new(Const[3], Rational[2]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ])
         end
       end
@@ -127,9 +127,9 @@ describe Parser do
           i.should eq tokens.size-1
 
           term_ir.should eq Term.new(Multiset.new([
-            Power.new(Const[7], Rational[1]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[7], Rational[1]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ]), negative: true)
         end
 
@@ -146,9 +146,9 @@ describe Parser do
 
           i.should eq tokens.size-1
           term_ir.should eq Term.new(Multiset.new [
-            Power.new(Const[7], Rational[1]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[7], Rational[1]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ])
         end
 
@@ -166,9 +166,9 @@ describe Parser do
 
           i.should eq tokens.size-1
           term_ir.should eq Term.new(Multiset.new [
-            Power.new(Const[7], Rational[1]),
-            Power.new(Var["x"], Rational[2]),
-            Power.new(Var["y"], Rational[1])
+            Power(Base).new(Const[7], Rational[1]),
+            Power(Base).new(Var["x"], Rational[2]),
+            Power(Base).new(Var["y"], Rational[1])
           ])
         end
       end
@@ -200,17 +200,17 @@ describe Parser do
         i.should eq tokens.size-1
 
         term_ir.should eq Term.new(Multiset.new([
-          Power.new(Var["x"], Rational[1]),
-          Power.new(Expr.new(Multiset.new([
+          Power(Base).new(Var["x"], Rational[1]),
+          Power(Base).new(Expr.new(Multiset.new([
             Term.new(Multiset.new([
-              Power.new(Const[7], Rational[1]),
-              Power.new(Var["x"], Rational[2]),
+              Power(Base).new(Const[7], Rational[1]),
+              Power(Base).new(Var["x"], Rational[2]),
             ]), negative: true),
             Term.new(Multiset.new([
-              Power.new(Const[3], Rational[1])
+              Power(Base).new(Const[3], Rational[1])
             ]))
           ])), Rational[2]),
-          Power.new(Var["y"], Rational[3])
+          Power(Base).new(Var["y"], Rational[3])
         ]), negative: true)
       end
     end

@@ -95,22 +95,22 @@ module Parser
     while tokens[i].const? || tokens[i].var? || tokens[i].lbrack?
 
       if tokens[i].const? && !tokens[i+1].power?
-        const_tokens_to_powers(tokens[i]).each{|k, v| term_ir << Power.new(Const[k], v) }
+        const_tokens_to_powers(tokens[i]).each{|k, v| term_ir << Power(Base).new(Const[k], v) }
         i += 1
       end
 
       if tokens[i].const? && tokens[i+1].power?
-        const_tokens_to_powers(tokens[i], tokens[i+2]).each{|k, v| term_ir << Power.new(Const[k], v) }
+        const_tokens_to_powers(tokens[i], tokens[i+2]).each{|k, v| term_ir << Power(Base).new(Const[k], v) }
         i += 3
       end
 
       if tokens[i].var? && !tokens[i+1].power?
-        term_ir << Power.new(Var[tokens[i].value], Rational[1])
+        term_ir << Power(Base).new(Var[tokens[i].value], Rational[1])
         i += 1
       end
 
       if tokens[i].var? && tokens[i+1].power?
-        term_ir << Power.new(Var[tokens[i].value], Rational[tokens[i+2].value])
+        term_ir << Power(Base).new(Var[tokens[i].value], Rational[tokens[i+2].value])
         i += 3
       end
 
@@ -124,9 +124,9 @@ module Parser
         i += 1
 
         unless tokens[i].power?
-          term_ir << Power.new expr_ir, Rational[1]
+          term_ir << Power(Base).new expr_ir, Rational[1]
         else
-          term_ir << Power.new expr_ir, Rational[tokens[i+1].value]
+          term_ir << Power(Base).new expr_ir, Rational[tokens[i+1].value]
           i += 2
         end
       end

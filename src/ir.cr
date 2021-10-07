@@ -207,14 +207,14 @@ module IR
   end
   alias Var = Variable
 
-  struct Power
+  struct Power(T)
 
-    def initialize(base : Base, exponent : Rational)
+    def initialize(base : T, exponent : Rational)
       @base = base
       @exponent = exponent
     end
 
-    getter base : Base, exponent : Rational
+    getter base : T, exponent : Rational
 
     def to_s : String
       "#{@base}^#{@exponent}"
@@ -228,14 +228,14 @@ module IR
 
   struct Term
     @negative : Bool = false
-    @powers : Multiset(Power)
+    @powers : Multiset(Power(Base))
     @representation : Hash(Base, Rational) = {} of Base => Rational
 
     def initialize
-      @powers = Multiset(Power).new
+      @powers = Multiset(Power(Base)).new
     end
 
-    def initialize(powers : Multiset(Power), negative : Bool = false)
+    def initialize(powers : Multiset(Power(Base)), negative : Bool = false)
       @negative = negative
 
       @powers = powers
@@ -262,7 +262,7 @@ module IR
       @negative = !@negative
     end
 
-    def <<(p : Power) : Term
+    def <<(p : Power(Base)) : Term
       @powers << p
       accommodate p
 
@@ -301,7 +301,7 @@ module IR
       io << to_s
     end
 
-    private def accommodate(p : Power)
+    private def accommodate(p : Power(Base))
       @representation[p.base] = @representation.has_key?(p.base) ? @representation[p.base] + p.exponent : p.exponent
     end
   end
