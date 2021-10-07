@@ -141,12 +141,28 @@ module IR
       end
     end
 
+    def self.[](n : Int32) : Token
+      Token.new n.to_s, TokenType::CONSTANT
+    end
+
+    def self.[](s : Symbol | String) : Token
+      Token.new s.to_s, TokenType::VARIABLE
+    end
+
+    def self.[](c : Char)
+      Token.get c
+    end
+
     def ==(t : Token)
       @type == t.type && @value == t.value
     end
 
-    def to_s
+    def to_s : String
       "|#{@type} #{@value}|"
+    end
+
+    def to_s(io : IO) : IO
+      io << to_s
     end
   end
 
@@ -160,62 +176,229 @@ module IR
       io << @value.to_s
     end
 
-    def self.[](value)
+    def self.[](value) : Constant
       Constant.new value
+    end
+
+    def evaluate
+      @value
     end
   end
   alias Const = Constant
 
   struct Variable
+    @name : String
 
     def initialize(name : String)
       @name = name
     end
 
-    def to_s(io : IO)
+    def to_s : String
+      @name
+    end
+
+    def to_s(io : IO) : IO
       io << @name
     end
 
-    def self.[](name)
+    def self.[](name) : Variable
       Variable.new name
     end
   end
   alias Var = Variable
 
+  struct Power
+
+    def initialize(base : Base, exponent : Rational)
+      @base = base
+      @exponent = exponent
+    end
+
+    getter base : Base, exponent : Rational
+
+    def to_s : String
+      "#{@base}^#{@exponent}"
+    end
+
+    def to_s(io : IO) : IO
+      io << to_s
+    end
+
+  end
+
   struct Term
-    @power_product : PowerProduct(Base)
+    @negative : Bool = false
+    @powers : Multiset(Power)
+    @representation : Hash(Base, Rational) = {} of Base => Rational
 
     def initialize
-      @power_product = PowerProduct(Base).new({} of Base => Rational)
+      @powers = Multiset(Power).new
     end
 
-    def initialize(pp : PowerProduct(Base))
-      @power_product = pp
+    def initialize(powers : Multiset(Power), negative : Bool = false)
+      @negative = negative
+
+      @powers = powers
+      @powers.each{|p| accommodate p }
     end
 
-    def <<(base : Base, exponent : Rational) : Term
-      @power_product.<< **{ base: base, exponent: exponent }
+    def powers
+      @powers.dup
+    end
+
+    def rep
+      representation
+    end
+
+    def representation
+      @representation.dup
+    end
+
+    def negative?
+      @negative
+    end
+
+    def negate!
+      @negative = !@negative
+    end
+
+    def <<(p : Power) : Term
+      @powers << p
+      accommodate p
+
       self
     end
 
-    def <<(pp : PowerProduct(Base)) : Term
-      pp.powers.each do |p|
-        @power_product.<< **{ base: p[0], exponent: p[1] }
-      end
-      self
+    def ===(t : Term)
+      @negative == t.negative? && @powers == t.powers
     end
 
-    def to_s(io : IO)
-      @power_product.to_s io
+    def ==(t : Term) : Bool
+      @negative == t.negative? && @representation == t.representation
+    end
+
+    def =~(t : Term) : Bool
+      efficient == t.efficient
+    end
+
+    def coefficient : Hash(Const, Rational)
+      @representation.compact_map do |b, e|
+        b.is_a?(Const) ? {b.as Const, e} : nil
+      end.to_h
+    end
+
+    def efficient : Hash(Var | Expr, Rational)
+      @representation.compact_map do |b, e|
+        b.is_a?(Const) ? nil : {b.as(Var | Expr), e}
+      end.to_h
+    end
+
+    def to_s : String
+      "T[#{("-1." if @negative)}#{@powers.map(&.to_s).join('.')}]"
+    end
+
+    def to_s(io : IO) : IO
+      io << to_s
+    end
+
+    private def accommodate(p : Power)
+      @representation[p.base] = @representation.has_key?(p.base) ? @representation[p.base] + p.exponent : p.exponent
     end
   end
 
-  struct Expression
-    def initialize()
+  # struct Term
+  #   @power_product : PowerProduct(Base)
 
+  #   def initialize
+  #     @power_product = PowerProduct(Base).new({} of Base => Rational)
+  #   end
+
+  #   def initialize(pp : PowerProduct(Base))
+  #     @power_product = pp
+  #   end
+
+  #   def <<(base : Base, exponent : Rational) : Term
+  #     @power_product.<< **{ base: base, exponent: exponent }
+  #     self
+  #   end
+
+  #   def <<(pp : PowerProduct(Base)) : Term
+  #     pp.powers.each do |p|
+  #       @power_product.<< **{ base: p[0], exponent: p[1] }
+  #     end
+  #     self
+  #   end
+
+  #   def to_s(io : IO)
+  #     @power_product.to_s io
+  #   end
+  # end
+
+  struct Expression
+    @terms : Multiset(Term)
+    @representation : Hash(Hash(Var | Expr, Rational),Hash(Const, Rational)) = {} of Hash(Var | Expr, Rational) => Hash(Const, Rational)
+
+    def initialize
+      @terms = Multiset(Term).new
+      @representation = {} of Hash(Var | Expr, Rational) => Hash(Const, Rational)
+    end
+
+    def initialize(terms : Multiset(Term))
+      @terms = terms
+      @terms.each{|t| accommodate t }
+    end
+
+    def terms
+      @terms.clone
+    end
+
+    def <<(t : Term) : Expr
+      @terms << t
+      accommodate t
+
+      self
+    end
+
+    def rep
+      representation
+    end
+
+    def representation
+      @representation.clone
+    end
+
+    def ===(e : Expr)
+      @terms == e.terms
+    end
+
+    def ==(e : Expr)
+      @representation == e.representation
+    end
+
+    def to_s : String
+      "E[#{@terms.map(&.to_s).join(' ')}]"
+    end
+
+    def to_s(io : IO) : IO
+      io << to_s
+    end
+
+    private def accommodate(t : Term)
+      @representation[t.efficient] = @representation.has_key?(t.efficient) ? add_coef_representations(@representation[t.efficient], t.coefficient.as Hash(Const, Rational)) : t.coefficient
+    end
+
+    private def add_coef_representations(rep1 : Hash(Const,Rational), rep2 : Hash(Const,Rational)) : Hash(Const, Rational)
+      coef1 = rep1.reduce(1) do |acc, (k, v)|
+        acc * (k.evaluate ** v.to_i)
+      end
+
+      coef2 = rep2.reduce(1) do |acc, (k, v)|
+        acc * (k.evaluate ** v.to_i)
+      end
+
+      Factorization.prime(coef1 + coef2).wrap_base(Const).powers
     end
   end
   alias Expr = Expression
-
 
 end

@@ -137,6 +137,57 @@ describe IR do
     describe_singleton_token_getters_and_type_checkers({plus: '+', minus: '-', into: '*', by: '/', power: '^', lbrack: '(', rbrack: ')', null: '\0'})
 
     describe_string_representation_of_tokens({plus: '+', minus: '-', into: '*', by: '/', power: '^', lbrack: '(', rbrack: ')', null: '\0'})
+  end
 
+  describe Term do
+    describe "#=~" do
+      context "when both terms have same non-standard representation" do
+        it "checks if terms with same sign have common efficient powers" do
+          t1 = Term.new(Multiset.new([
+            Power.new(Const[3], Rational[1]),
+            Power.new(Var["x"], Rational[2]),
+          ]), negative: true)
+
+          t2 = Term.new(Multiset.new([
+            Power.new(Const[7], Rational[1]),
+            Power.new(Var["x"], Rational[2]),
+          ]), negative: true)
+
+          (t1 =~ t2).should be_true
+        end
+
+        it "checks if terms with opposite sign have common efficient powers" do
+          t1 = Term.new(Multiset.new([
+            Power.new(Const[3], Rational[1]),
+            Power.new(Var["x"], Rational[2]),
+          ]))
+
+          t2 = Term.new(Multiset.new([
+            Power.new(Const[7], Rational[1]),
+            Power.new(Var["x"], Rational[2]),
+          ]), negative: true)
+
+          (t1 =~ t2).should be_true
+        end
+      end
+
+      context "when both terms have different non-standard representation" do
+        it "checks if terms have common efficient powers" do
+          t1 = Term.new(Multiset.new([
+            Power.new(Const[3], Rational[1]),
+            Power.new(Var["x"], Rational[2]),
+            Power.new(Var["x"], Rational[1]),
+          ]))
+
+          t2 = Term.new(Multiset.new([
+            Power.new(Const[7], Rational[1]),
+            Power.new(Var["x"], Rational[3]),
+          ]), negative: true)
+
+          (t1 =~ t2).should be_true
+        end
+      end
+
+    end
   end
 end
